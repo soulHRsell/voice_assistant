@@ -3,8 +3,29 @@ import pyttsx3
 import datetime
 import wikipedia
 import webbrowser
-import os
 import pyjokes
+
+def speach_recognizer_init() -> sr.Recognizer:
+    rec = sr.Recognizer()
+    rec.pause_threshold = 1.2
+    rec.non_speaking_duration = 0.5
+    return rec
+
+def voice_capture(rec: sr.Recognizer) -> str:
+    text=""
+    with sr.Microphone() as source:
+        print("Calibrating microphone be quiet.")
+        rec.adjust_for_ambient_noise(source, duration=1)
+        print("Talk:")
+        audio_text = rec.listen(source)
+        print("Finished listening.")
+        try:
+            text = rec.recognize_google(audio_text)
+            print(f"You said: {text}")
+        except:
+            speak("Im sorry i didnt undrestand what you saying!")
+        
+        return text
 
 def speak(text: str) -> None:
     print(f"Assistant: {text}")
@@ -25,13 +46,29 @@ def wish_user():
         speak("Good Evening!")
     speak("I am your voice assistant. how can I help you today?")
 
-def take_command():
+def take_command(is_mic: bool) -> str:
+    if is_mic is True:
+        return voice_capture(speach_recognizer_init()).lower()
+    
     return input("You (type your command): ").lower()
 
 def run_assistant():
     wish_user()
+
+    mic_mode = False
     while True:
-        query = take_command()
+        mode = input("speak or type(Y/N): ").lower()
+        if mode == 'y' or mode == 'yes':
+            mic_mode = True
+            break
+        elif mode == 'n' or mode =='no':
+            mic_mode = False
+            break
+        else:
+            speak("Wrong input try again")
+
+    while True:
+        query = take_command(mic_mode)
 
         if 'wikipedia' in query:
             speak('Searching  Wikipedia...')
